@@ -1,14 +1,21 @@
 // main.ts — validates entry.png and copies it to the output directory.
 // Node standard library only. No network. Deterministic: the same input
 // file always produces the same output bytes.
+//
+// The image is resolved relative to this script's own directory
+// (dirname(fileURLToPath(import.meta.url))), NOT relative to the current
+// working directory: the grader runs `node /bot/main.ts` from an arbitrary
+// working directory, so a cwd-based lookup fails with ENOENT.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const MAX_BYTES = 1024 * 1024; // 1 MiB
 const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
 function main(): void {
-  const data = readFileSync(join(process.cwd(), "entry.png"));
+  const scriptDir = dirname(fileURLToPath(import.meta.url));
+  const data = readFileSync(join(scriptDir, "entry.png"));
 
   if (data.length > MAX_BYTES) {
     throw new Error(`entry.png is ${data.length} bytes, over the 1 MiB cap`);
